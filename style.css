@@ -1,1 +1,19 @@
-/* All style elements for your extension go here */
+.sd-settings label:not(.checkbox_label) {
+  display: block;
+}
+
+.sd_settings .flex1.checkbox-label input[type="checkbox"] {
+  margin-right: 5px;
+  margin-left: 5px;
+}
+
+#sd-dimensions-block {
+  position: relative;
+}
+
+#sd-swap-dimensions {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+}

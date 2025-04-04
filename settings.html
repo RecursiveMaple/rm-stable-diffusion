@@ -1,0 +1,373 @@
+<div class="sd-settings">
+  <div class="inline-drawer">
+    <div class="inline-drawer-toggle inline-drawer-header">
+      <b>
+        <span data-i18n="Image Generation">Image Generation</span>
+        <a href="https://github.com/RecursiveMaple/rm-stable-diffusion/" class="notes-link" target="_blank">
+          <span class="note-link-span">?</span>
+        </a>
+      </b>
+      <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+    </div>
+    <div class="inline-drawer-content">
+      <label for="sd-url">SD Web UI URL</label>
+      <div class="flex-container flexnowrap">
+        <input
+          id="sd-url"
+          type="text"
+          class="text-pole"
+          data-i18n="[placeholder]sd_auto_url"
+          placeholder="Example: {{url}}"
+          value="{{url}}"
+        />
+        <div id="sd-validate" class="menu-button menu-button_icon">
+          <i class="fa-solid fa-check"></i>
+          <span data-i18n="Connect"> Connect </span>
+        </div>
+      </div>
+      <label for="sd-auth" data-i18n="Authentication (optional)">Authentication (optional)</label>
+      <input
+        id="sd-auth"
+        type="text"
+        class="text-pole"
+        data-i18n="[placeholder]Example: username:password"
+        placeholder="Example: username:password"
+        value=""
+      />
+      <!-- (Original Text)<b>Important:</b> run SD Web UI with the <tt>--api</tt> flag! The server must be accessible from the SillyTavern host machine. -->
+      <i><b data-i18n="Important:">Important:</b></i
+      ><i data-i18n="sd_auto_auth_warning_1"> run SD Web UI with the </i><i><tt>--api</tt></i
+      ><i data-i18n="sd_auto_auth_warning_2"> flag! The server must be accessible from the SillyTavern host machine.</i>
+      <div class="flex-container">
+        <div class="flex1">
+          <label for="sd-model" data-i18n="Model">Model</label>
+          <select id="sd-model"></select>
+        </div>
+        <div class="flex1">
+          <label for="sd-vae">VAE</label>
+          <select id="sd-vae"></select>
+        </div>
+      </div>
+      <div class="flex-container">
+        <div class="flex1">
+          <label for="sd-sampler" data-i18n="Sampling method">Sampling method</label>
+          <select id="sd-sampler"></select>
+        </div>
+        <div class="flex1">
+          <label for="sd-scheduler" data-i18n="Scheduler">Scheduler</label>
+          <select id="sd-scheduler"></select>
+        </div>
+      </div>
+      <div class="flex-container">
+        <div class="flex1">
+          <label for="sd-resolution" data-i18n="Resolution">Resolution</label>
+          <select id="sd-resolution">
+            <!-- Populated in JS -->
+          </select>
+        </div>
+        <div class="flex1">
+          <label for="sd-hr-upscaler" data-i18n="Upscaler">Upscaler</label>
+          <select id="sd-hr-upscaler"></select>
+        </div>
+      </div>
+      <div class="flex-container">
+        <div class="alignitemscenter flex-container flexFlowColumn flexGrow flexShrink gap0 flexBasis48p">
+          <small>
+            <span data-i18n="Sampling steps">Sampling steps</span>
+          </small>
+          <input
+            class="neo-range-slider"
+            type="range"
+            id="sd-steps"
+            name="sd-steps"
+            min="{{steps_min}}"
+            max="{{steps_max}}"
+            step="{{steps_step}}"
+            value="{{steps}}"
+          />
+          <input
+            class="neo-range-input"
+            type="number"
+            id="sd-steps-value"
+            data-for="sd-steps"
+            min="{{steps_min}}"
+            max="{{steps_max}}"
+            step="{{steps_step}}"
+            value="{{steps}}"
+          />
+        </div>
+        <div class="alignitemscenter flex-container flexFlowColumn flexGrow flexShrink gap0 flexBasis48p">
+          <small>
+            <span data-i18n="CFG Scale">CFG Scale</span>
+          </small>
+          <input
+            class="neo-range-slider"
+            type="range"
+            id="sd-scale"
+            name="sd-scale"
+            min="{{scale_min}}"
+            max="{{scale_max}}"
+            step="{{scale_step}}"
+            value="{{scale}}"
+          />
+          <input
+            class="neo-range-input"
+            type="number"
+            id="sd-scale-value"
+            data-for="sd-scale"
+            min="{{scale_min}}"
+            max="{{scale_max}}"
+            step="{{scale_step}}"
+            value="{{scale}}"
+          />
+        </div>
+      </div>
+      <div id="sd-dimensions-block" class="flex-container">
+        <div class="alignitemscenter flex-container flexFlowColumn flexGrow flexShrink gap0 flexBasis48p">
+          <small>
+            <span data-i18n="Width">Width</span>
+          </small>
+          <input
+            class="neo-range-slider"
+            type="range"
+            id="sd-width"
+            name="sd-width"
+            max="{{dimension_max}}"
+            min="{{dimension_min}}"
+            step="{{dimension_step}}"
+            value="{{width}}"
+          />
+          <input
+            class="neo-range-input"
+            type="number"
+            id="sd-width-value"
+            data-for="sd-width"
+            max="{{dimension_max}}"
+            min="{{dimension_min}}"
+            step="{{dimension_step}}"
+            value="{{width}}"
+          />
+        </div>
+        <div class="alignitemscenter flex-container flexFlowColumn flexGrow flexShrink gap0 flexBasis48p">
+          <small>
+            <span data-i18n="Height">Height</span>
+          </small>
+          <input
+            class="neo-range-slider"
+            type="range"
+            id="sd-height"
+            name="sd-height"
+            max="{{dimension_max}}"
+            min="{{dimension_min}}"
+            step="{{dimension_step}}"
+            value="{{height}}"
+          />
+          <input
+            class="neo-range-input"
+            type="number"
+            id="sd-height-value"
+            data-for="sd-height"
+            max="{{dimension_max}}"
+            min="{{dimension_min}}"
+            step="{{dimension_step}}"
+            value="{{height}}"
+          />
+        </div>
+        <div
+          id="sd-swap-dimensions"
+          class="right-menu-button"
+          title="Swap width and height"
+          data-i18n="[title]Swap width and height"
+        >
+          <i class="fa-solid fa-arrow-right-arrow-left"></i>
+        </div>
+      </div>
+      <div class="flex-container">
+        <div class="alignitemscenter flex-container flexFlowColumn flexGrow flexShrink gap0 flexBasis48p">
+          <small>
+            <span data-i18n="Upscale by">Upscale by</span>
+          </small>
+          <input
+            class="neo-range-slider"
+            type="range"
+            id="sd-hr-scale"
+            name="sd-hr-scale"
+            min="{{hr_scale_min}}"
+            max="{{hr_scale_max}}"
+            step="{{hr_scale_step}}"
+            value="{{hr_scale}}"
+          />
+          <input
+            class="neo-range-input"
+            type="number"
+            id="sd-hr-scale-value"
+            data-for="sd-hr-scale"
+            min="{{hr_scale_min}}"
+            max="{{hr_scale_max}}"
+            step="{{hr_scale_step}}"
+            value="{{hr_scale}}"
+          />
+        </div>
+        <div class="alignitemscenter flex-container flexFlowColumn flexGrow flexShrink gap0 flexBasis48p">
+          <small>
+            <span data-i18n="Denoising strength">Denoising strength</span>
+          </small>
+          <input
+            class="neo-range-slider"
+            type="range"
+            id="sd-denoising-strength"
+            name="sd-denoising-strength"
+            min="{{denoising_strength_min}}"
+            max="{{denoising_strength_max}}"
+            step="{{denoising_strength_step}}"
+            value="{{denoising_strength}}"
+          />
+          <input
+            class="neo-range-input"
+            type="number"
+            id="sd-denoising-strength-value"
+            data-for="sd-denoising-strength"
+            min="{{denoising_strength_min}}"
+            max="{{denoising_strength_max}}"
+            step="{{denoising_strength_step}}"
+            value="{{denoising_strength}}"
+          />
+        </div>
+        <div class="alignitemscenter flex-container flexFlowColumn flexGrow flexShrink gap0 flexBasis48p">
+          <small>
+            <span data-i18n="Hires steps (2nd pass)">Hires steps (2nd pass)</span>
+          </small>
+          <input
+            class="neo-range-slider"
+            type="range"
+            id="sd-hr-second-pass-steps"
+            name="sd-hr-second-pass-steps"
+            max="{{hr_second_pass_steps_max}}"
+            step="{{hr_second_pass_steps_step}}"
+            value="{{hr_second_pass_steps}}"
+          />
+          <input
+            class="neo-range-input"
+            type="number"
+            id="sd-hr-second-pass-steps-value"
+            data-for="sd-hr-second-pass-steps"
+            max="{{hr_second_pass_steps_max}}"
+            step="{{hr_second_pass_steps_step}}"
+            value="{{hr_second_pass_steps}}"
+          />
+        </div>
+        <div class="alignitemscenter flex-container flexFlowColumn flexGrow flexShrink gap0 flexBasis48p">
+          <small>
+            <span data-i18n="CLIP Skip">CLIP Skip</span>
+          </small>
+          <input
+            class="neo-range-slider"
+            type="range"
+            id="sd-clip-skip"
+            name="sd-clip-skip"
+            min="{{clip_skip_min}}"
+            max="{{clip_skip_max}}"
+            step="{{clip_skip_step}}"
+            value="{{clip_skip}}"
+          />
+          <input
+            class="neo-range-input"
+            type="number"
+            id="sd-clip-skip-value"
+            data-for="sd-clip-skip"
+            min="{{clip_skip_min}}"
+            max="{{clip_skip_max}}"
+            step="{{clip_skip_step}}"
+            value="{{clip_skip}}"
+          />
+        </div>
+      </div>
+      <div class="flex-container marginTopBot5">
+        <label class="flex1 checkbox-label">
+          <input id="sd-restore-faces" type="checkbox" />
+          <small data-i18n="Restore Faces">Restore Faces</small>
+        </label>
+        <label class="flex1 checkbox-label">
+          <input id="sd-enable-hr" type="checkbox" />
+          <small data-i18n="Hires. Fix">Hires. Fix</small>
+        </label>
+      </div>
+      <div class="flex-container marginTopBot5">
+        <label
+          for="sd-adetailer-face"
+          class="flex1 checkbox-label"
+          data-i18n="[title]sd_adetailer_face"
+          title="Use ADetailer with face model during the generation. The ADetailer extension must be installed on the backend."
+        >
+          <input id="sd-adetailer-face" type="checkbox" />
+          <small data-i18n="Use ADetailer (Face)">Use ADetailer (Face)</small>
+        </label>
+        <div class="flex1">
+          <!-- I will be useful later! -->
+        </div>
+      </div>
+      <div class="marginTop5">
+        <label for="sd-seed">
+          <span data-i18n="Seed">Seed</span>
+          <small data-i18n="(-1 for random)">(-1 for random)</small>
+        </label>
+        <input id="sd-seed" type="number" class="text-pole" min="-1" max="9999999999" step="1" />
+      </div>
+
+      <hr />
+      <h4
+        data-i18n="[title]Preset for prompt prefix and negative prompt"
+        title="Preset for prompt prefix and negative prompt"
+      >
+        <span data-i18n="Style">Style</span>
+      </h4>
+      <div class="flex-container">
+        <select id="sd-style" class="flex1 text-pole"></select>
+        <div id="sd-save-style" data-i18n="[title]Save style" title="Save style" class="menu-button">
+          <i class="fa-solid fa-save"></i>
+        </div>
+        <div id="sd-delete-style" data-i18n="[title]Delete style" title="Delete style" class="menu-button">
+          <i class="fa-solid fa-trash-can"></i>
+        </div>
+      </div>
+      <label for="sd-prompt-prefix" data-i18n="Common prompt prefix">Common prompt prefix</label>
+      <textarea
+        id="sd-prompt-prefix"
+        class="text-pole textarea-compact autoSetHeight"
+        data-i18n="[placeholder]sd-prompt-prefix-placeholder"
+        placeholder="Use {prompt} to specify where the generated prompt will be inserted"
+      ></textarea>
+      <label for="sd-negative-prompt" data-i18n="Negative common prompt prefix">Negative common prompt prefix</label>
+      <textarea id="sd-negative-prompt" class="text-pole textarea-compact autoSetHeight"></textarea>
+      <div id="sd-character-prompt-block">
+        <label for="sd-character-prompt" data-i18n="Character-specific prompt prefix"
+          >Character-specific prompt prefix</label
+        >
+        <small data-i18n="Won't be used in groups.">Won't be used in groups.</small>
+        <textarea
+          id="sd-character-prompt"
+          class="text-pole textarea-compact autoSetHeight"
+          data-i18n="[placeholder]sd_character_prompt_placeholder"
+          placeholder="Any characteristics that describe the currently selected character. Will be added after a common prompt prefix.&#10;Example: female, green eyes, brown hair, pink shirt"
+        ></textarea>
+        <label for="sd-character-negative-prompt" data-i18n="Character-specific negative prompt prefix"
+          >Character-specific negative prompt prefix</label
+        >
+        <small data-i18n="Won't be used in groups.">Won't be used in groups.</small>
+        <textarea
+          id="sd-character-negative-prompt"
+          class="text-pole textarea-compact autoSetHeight"
+          data-i18n="[placeholder]sd_character_negative_prompt_placeholder"
+          placeholder="Any characteristics that should not appear for the selected character. Will be added after a negative common prompt prefix.&#10;Example: jewellery, shoes, glasses"
+        ></textarea>
+        <label for="sd-character-prompt-share" class="checkbox-label flexWrap marginTop5">
+          <input id="sd-character-prompt-share" type="checkbox" />
+          <span data-i18n="Shareable"> Shareable </span>
+          <small class="flexBasis100p">
+            When checked, character-specific prompts will be saved with the character card data.
+          </small>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
