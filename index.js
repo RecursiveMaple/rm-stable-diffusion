@@ -866,39 +866,6 @@ function processReply(str) {
   return str;
 }
 
-function getRawLastMessage() {
-  const getLastUsableMessage = () => {
-    for (const message of context.chat.slice().reverse()) {
-      if (message.is_system) {
-        continue;
-      }
-
-      return {
-        mes: message.mes,
-        original_avatar: message.original_avatar,
-      };
-    }
-
-    toastr.warning("No usable messages found.", "Image Generation");
-    throw new Error("No usable messages found.");
-  };
-
-  const context = getContext();
-  const lastMessage = getLastUsableMessage();
-  const character = context.groupId
-    ? context.characters.find((c) => c.avatar === lastMessage.original_avatar)
-    : context.characters[context.characterId];
-
-  if (!character) {
-    console.debug("Character not found, using raw message.");
-    return processReply(lastMessage.mes);
-  }
-
-  return `((${processReply(lastMessage.mes)})), (${processReply(character.scenario)}:0.7), (${processReply(
-    character.description
-  )}:0.5)`;
-}
-
 /**
  * Ensure that the selected option exists in the dropdown.
  * @param {string} setting Setting key
@@ -921,15 +888,11 @@ function ensureSelectionExists(setting, selector) {
 /**
  * Generates an image based on the given trigger word.
  * @param {string} initiator The initiator of the image generation
- * @param {Record<string, object>} args Command arguments
- * @param {string} trigger Subject trigger word
- * @param {string} [message] Chat message
- * @param {function} [callback] Callback function
  * @returns {Promise<string|undefined>} Image path
  * @throws {Error} If the prompt or image generation fails
  */
 async function generatePicture(initiator) {
-  if (!isValidState()) {
+  if (!extension_settings.sd.url) {
     toastr.warning("Image generation is not available. Check your settings and try again.");
     return;
   }
@@ -962,6 +925,7 @@ async function generatePicture(initiator) {
     eventSource.once(CUSTOM_STOP_EVENT, stopListener);
 
     // generate the image
+    const callback = () => {};
     imagePath = await sendGenerationRequest(
       prompt,
       negativePromptPrefix,
@@ -1009,7 +973,6 @@ function getCharacterAvatarUrl() {
  * @returns {Promise<string>} - A promise that resolves when the prompt generation completes.
  */
 async function generatePrompt(quietPrompt) {
-  // TODO: Modify
   const reply = await generateQuietPrompt(quietPrompt, false, false);
   const processedReply = processReply(reply);
 
@@ -1166,7 +1129,7 @@ async function sendMessage(prompt, image, generationType, additionalNegativePref
   const message = {
     name: name,
     is_user: false,
-    is_system: !getVisibilityByInitiator(initiator),
+    is_system: true,
     send_date: getMessageTimeStamp(),
     mes: messageText,
     extra: {
@@ -1186,26 +1149,6 @@ async function sendMessage(prompt, image, generationType, additionalNegativePref
   await context.saveChat();
 }
 
-/**
- * Gets the visibility of the resulting message based on the initiator.
- * @param {string} initiator Generation initiator
- * @returns {boolean} Is resulting message visible
- */
-function getVisibilityByInitiator(initiator) {
-  switch (initiator) {
-    case initiators.interactive:
-      return !!extension_settings.sd.interactive_visible;
-    case initiators.wand:
-      return !!extension_settings.sd.wand_visible;
-    case initiators.command:
-      return !!extension_settings.sd.command_visible;
-    case initiators.tool:
-      return !!extension_settings.sd.tool_visible;
-    default:
-      return false;
-  }
-}
-
 async function addSDGenButtons() {
   const buttonHtml = await renderExtensionTemplateAsync("third-party/rm-stable-diffusion", "button");
   $("#sd_wand_container").append(buttonHtml);
@@ -1214,43 +1157,6 @@ async function addSDGenButtons() {
 
   $("#sd_stop").hide();
   $("#sd_stop").on("click", () => eventSource.emit(CUSTOM_STOP_EVENT));
-}
-
-function isValidState() {
-  switch (extension_settings.sd.source) {
-    case sources.extras:
-      return modules.includes("sd");
-    case sources.horde:
-      return true;
-    case sources.auto:
-      return !!extension_settings.sd.url;
-    case sources.drawthings:
-      return !!extension_settings.sd.drawthings_url;
-    case sources.vlad:
-      return !!extension_settings.sd.vlad_url;
-    case sources.novel:
-      return secret_state[SECRET_KEYS.NOVEL];
-    case sources.openai:
-      return secret_state[SECRET_KEYS.OPENAI];
-    case sources.comfy:
-      return true;
-    case sources.togetherai:
-      return secret_state[SECRET_KEYS.TOGETHERAI];
-    case sources.pollinations:
-      return true;
-    case sources.stability:
-      return secret_state[SECRET_KEYS.STABILITY];
-    case sources.blockentropy:
-      return secret_state[SECRET_KEYS.BLOCKENTROPY];
-    case sources.huggingface:
-      return secret_state[SECRET_KEYS.HUGGINGFACE];
-    case sources.nanogpt:
-      return secret_state[SECRET_KEYS.NANOGPT];
-    case sources.bfl:
-      return secret_state[SECRET_KEYS.BFL];
-    case sources.falai:
-      return secret_state[SECRET_KEYS.FALAI];
-  }
 }
 
 async function onCharacterPromptShareInput() {
