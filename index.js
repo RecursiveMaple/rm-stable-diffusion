@@ -349,10 +349,6 @@ async function loadModels() {
   }
 
   try {
-    const currentModel = await getRemoteModel();
-    if (currentModel) {
-      extension_settings[extensionName].model = currentModel;
-    }
     const result = await fetch("/api/sd/models", {
       method: "POST",
       headers: getRequestHeaders(),
@@ -503,25 +499,6 @@ async function getRemoteUpscalers() {
   } catch (error) {
     console.error(error);
     return [extension_settings[extensionName].hr_upscaler];
-  }
-}
-
-async function getRemoteModel() {
-  try {
-    const result = await fetch("/api/sd/get-model", {
-      method: "POST",
-      headers: getRequestHeaders(),
-      body: JSON.stringify(getRequestBody()),
-    });
-
-    if (!result.ok) {
-      throw new Error("SD WebUI returned an error.");
-    }
-
-    return await result.text();
-  } catch (error) {
-    console.error(error);
-    return null;
   }
 }
 
