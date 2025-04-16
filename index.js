@@ -610,12 +610,11 @@ async function generatePicture(initiator) {
     eventSource.once(CUSTOM_STOP_EVENT, stopListener);
 
     // generate the image
-    const callback = () => {};
     imagePath = await sendGenerationRequest(
       prompt,
       negativePromptPrefix,
       characterName,
-      callback,
+      null,
       initiator,
       abortController.signal
     );
@@ -637,7 +636,6 @@ async function generatePicture(initiator) {
 
 /**
  * Sends a request to image generation endpoint and processes the result.
- * @param {number} generationType Type of image generation
  * @param {string} prompt Prompt to be used for image generation
  * @param {string} additionalNegativePrefix Additional negative prompt to be used for image generation
  * @param {string} characterName Name of the character
@@ -685,8 +683,8 @@ async function sendGenerationRequest(prompt, additionalNegativePrefix, character
   const filename = `${characterName}_${humanizedDateTime()}`;
   const base64Image = await saveBase64AsFile(result.data, characterName, filename, result.format);
   callback
-    ? await callback(prompt, base64Image, generationType, additionalNegativePrefix, initiator, prefixedPrompt)
-    : await sendMessage(prompt, base64Image, generationType, additionalNegativePrefix, initiator, prefixedPrompt);
+    ? await callback(prompt, base64Image, additionalNegativePrefix, initiator, prefixedPrompt)
+    : await sendMessage(prompt, base64Image, additionalNegativePrefix, initiator, prefixedPrompt);
   return base64Image;
 }
 
@@ -797,16 +795,15 @@ async function generateImage(prompt, negativePrompt, signal) {
  * Sends a chat message with the generated image.
  * @param {string} prompt Prompt used for the image generation
  * @param {string} image Base64 encoded image
- * @param {number} generationType Generation type of the image
  * @param {string} additionalNegativePrefix Additional negative prompt used for the image generation
  * @param {string} initiator The initiator of the image generation
  * @param {string} prefixedPrompt Prompt with an attached specific prefix
  */
-async function sendMessage(prompt, image, generationType, additionalNegativePrefix, initiator, prefixedPrompt) {
+async function sendMessage(prompt, image, additionalNegativePrefix, initiator, prefixedPrompt) {
   const context = getContext();
   const name = context.groupId ? systemUserName : context.name2;
-  const template = extensionSettings.prompts[generationMode.MESSAGE] || "{{prompt}}";
-  const messageText = substituteParamsExtended(template, {
+
+  const messageText = substituteParamsExtended("{{prompt}}", {
     char: name,
     prompt: prompt,
     prefixedPrompt: prefixedPrompt,
@@ -820,7 +817,6 @@ async function sendMessage(prompt, image, generationType, additionalNegativePref
     extra: {
       image: image,
       title: prompt,
-      generationType: generationType,
       negative: additionalNegativePrefix,
       inline_image: false,
       image_swipes: [image],
