@@ -23,6 +23,7 @@ import { selected_group } from "../../../group-chats.js";
 import {
   debounce,
   deepMerge,
+  getBase64Async,
   getCharaFilename,
   initScrollHeight,
   resetScrollHeight,
@@ -111,6 +112,21 @@ const defaultSettings = {
   clip_skip_max: 12,
   clip_skip_step: 1,
   clip_skip: 1,
+
+  // Reference ControlNet settings
+  ref: false,
+  ref_weight: 0.7,
+  ref_weight_min: 0.0,
+  ref_weight_max: 1.0,
+  ref_weight_step: 0.1,
+  ref_start: 0.0,
+  ref_start_min: 0.0,
+  ref_start_max: 1.0,
+  ref_start_step: 0.1,
+  ref_end: 0.7,
+  ref_end_min: 0.0,
+  ref_end_max: 1.0,
+  ref_end_step: 0.1,
 
   style: "Default",
   styles: defaultStyles,
@@ -252,6 +268,13 @@ async function loadSettings() {
   $("#sd_clip_skip").val(extensionSettings.clip_skip);
   $("#sd_clip_skip_value").val(extensionSettings.clip_skip);
   $("#sd_seed").val(extensionSettings.seed);
+  $("#sd_ref").prop("checked", extensionSettings.ref);
+  $("#sd_ref_weight").val(extensionSettings.ref_weight);
+  $("#sd_ref_weight_value").val(extensionSettings.ref_weight);
+  $("#sd_ref_start").val(extensionSettings.ref_start);
+  $("#sd_ref_start_value").val(extensionSettings.ref_start);
+  $("#sd_ref_end").val(extensionSettings.ref_end);
+  $("#sd_ref_end_value").val(extensionSettings.ref_end);
 
   for (const style of extensionSettings.styles) {
     const option = document.createElement("option");
@@ -713,6 +736,34 @@ async function generateImage(prompt, negativePrompt, signal) {
     });
   }
 
+  // Conditionally add the ControlNet if ref is enabled
+  if (extensionSettings.ref) {
+    const response = await fetch(getCharacterAvatarUrl());
+    if (!response.ok) {
+      throw new Error("Could not fetch avatar image.");
+    } else {
+      const avatarBlob = await response.blob();
+      const avatarBase64DataUrl = await getBase64Async(avatarBlob);
+      const avatarBase64 = avatarBase64DataUrl.split(",")[1];
+      payload = deepMerge(payload, {
+        alwayson_scripts: {
+          controlnet: {
+            args: [
+              {
+                enabled: true,
+                image: JSON.stringify(avatarBase64),
+                module: "reference_only",
+                weight: extensionSettings.ref_weight,
+                guidance_start: extensionSettings.ref_start,
+                guidance_end: extensionSettings.ref_end,
+              },
+            ],
+          },
+        },
+      });
+    }
+  }
+
   // Make the fetch call with the payload
   const result = await fetch("/api/sd/generate", {
     method: "POST",
@@ -1172,6 +1223,29 @@ async function onChatChanged() {
   await adjustElementScrollHeight();
 }
 
+function onRefInput() {
+  extensionSettings.ref = !!$(this).prop("checked");
+  saveSettingsDebounced();
+}
+
+function onRefWeightInput() {
+  extensionSettings.ref_weight = Number($("#sd_ref_weight").val());
+  $("#sd_ref_weight_value").val(extensionSettings.ref_weight.toFixed(1));
+  saveSettingsDebounced();
+}
+
+function onRefStartInput() {
+  extensionSettings.ref_start = Number($("#sd_ref_start").val());
+  $("#sd_ref_start_value").val(extensionSettings.ref_start.toFixed(1));
+  saveSettingsDebounced();
+}
+
+function onRefEndInput() {
+  extensionSettings.ref_end = Number($("#sd_ref_end").val());
+  $("#sd_ref_end_value").val(extensionSettings.ref_end.toFixed(1));
+  saveSettingsDebounced();
+}
+
 jQuery(async () => {
   await addSDGenButtons();
 
@@ -1208,6 +1282,10 @@ jQuery(async () => {
   $("#sd_seed").on("input", onSeedInput);
   $("#sd_character_prompt_share").on("input", onCharacterPromptShareInput);
   $("#sd_swap_dimensions").on("click", onSwapDimensionsClick);
+  $("#sd_ref").on("input", onRefInput);
+  $("#sd_ref_weight").on("input", onRefWeightInput);
+  $("#sd_ref_start").on("input", onRefStartInput);
+  $("#sd_ref_end").on("input", onRefEndInput);
 
   if (!CSS.supports("field-sizing", "content")) {
     $(".sd_settings .inline-drawer-toggle").on("click", function () {
