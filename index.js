@@ -289,7 +289,11 @@ async function loadSettings() {
   }
   const resolutionId = getClosestKnownResolution();
   $("#sd_resolution").val(resolutionId);
-  await Promise.all([loadSamplers(), loadModels(), loadSchedulers(), loadVaes()]);
+  await loadSettingOptions();
+}
+
+async function loadSettingOptions() {
+  return Promise.all([loadSamplers(), loadModels(), loadSchedulers(), loadVaes()]);
 }
 
 async function loadSamplers() {
@@ -1096,6 +1100,29 @@ function onAuthInput() {
   saveSettingsDebounced();
 }
 
+async function validateUrl() {
+  try {
+    if (!extensionSettings.url) {
+      throw new Error("URL is not set.");
+    }
+
+    const result = await fetch("/api/sd/ping", {
+      method: "POST",
+      headers: getRequestHeaders(),
+      body: JSON.stringify(getRequestBody()),
+    });
+
+    if (!result.ok) {
+      throw new Error("SD WebUI returned an error.");
+    }
+
+    await loadSettingOptions();
+    toastr.success("SD WebUI API connected.");
+  } catch (error) {
+    toastr.error(`Could not validate SD WebUI API: ${error.message}`);
+  }
+}
+
 async function addSDGenButtons() {
   const buttonHtml = await renderExtensionTemplateAsync("third-party/rm-stable-diffusion", "button");
   $("#sd_wand_container").append(buttonHtml);
@@ -1279,6 +1306,7 @@ jQuery(async () => {
   $("#sd_adetailer_face").on("change", onADetailerFaceChange);
   $("#sd_character_prompt").on("input", onCharacterPromptInput);
   $("#sd_character_negative_prompt").on("input", onCharacterNegativePromptInput);
+  $("#sd_validate").on("click", validateUrl);
   $("#sd_url").on("input", onUrlInput);
   $("#sd_auth").on("input", onAuthInput);
   $("#sd_hr_upscaler").on("change", onHrUpscalerChange);
