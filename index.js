@@ -32,10 +32,10 @@ import { getMessageTimeStamp, humanizedDateTime } from "../../../RossAscends-mod
 import { debounce_timeout } from "../../../constants.js";
 import { callGenericPopup, POPUP_TYPE } from "../../../popup.js";
 
-export { MODULE_NAME };
-
-const MODULE_NAME = "rm_sd";
 const CUSTOM_STOP_EVENT = "rm_sd_stop_generation";
+
+const extensionName = "rm_sd";
+let extensionSettings = extension_settings[extensionName];
 
 const initiators = {
   wand: "wand",
@@ -77,6 +77,7 @@ const defaultSettings = {
 
   prompt_prefix: defaultPrefix,
   negative_prompt: defaultNegative,
+  trigger_prompt: "Generate a prompt for Stable Diffusion image generator, describing current scenario",
   sampler: "DDIM",
   model: "",
   vae: "",
@@ -86,14 +87,6 @@ const defaultSettings = {
   restore_faces: false,
   enable_hr: false,
   adetailer_face: false,
-
-  // Refine mode
-  refine_mode: false,
-  interactive_mode: false,
-  multimodal_captioning: false,
-  snap: false,
-  free_extend: false,
-  function_tool: false,
 
   // AUTOMATIC1111 settings
   url: "http://localhost:7860",
@@ -182,17 +175,17 @@ function ensureSelectionExists(setting, selector) {
     return;
   }
   const options = Array.from(selectElement.options);
-  const value = extension_settings.sd[setting];
+  const value = extensionSettings[setting];
   if (selectElement.selectedOptions.length && !options.some((option) => option.value === value)) {
-    extension_settings.sd[setting] = selectElement.selectedOptions[0].value;
+    extensionSettings[setting] = selectElement.selectedOptions[0].value;
   }
 }
 
 function getClosestKnownResolution() {
   let resolutionId = null;
   let minTotalDiff = Infinity;
-  const targetAspect = extension_settings.sd.width / extension_settings.sd.height;
-  const targetResolution = extension_settings.sd.width * extension_settings.sd.height;
+  const targetAspect = extensionSettings.width / extensionSettings.height;
+  const targetResolution = extensionSettings.width * extensionSettings.height;
   const diffs = Object.entries(resolutionOptions).map(([id, resolution]) => {
     const aspectDiff = Math.abs(resolution.width / resolution.height - targetAspect) / targetAspect;
     const resolutionDiff = Math.abs(resolution.width * resolution.height - targetResolution) / targetResolution;
@@ -221,50 +214,50 @@ async function adjustElementScrollHeight() {
 }
 
 async function loadSettings() {
-  if (Object.keys(extension_settings.sd).length === 0) {
-    Object.assign(extension_settings.sd, defaultSettings);
+  if (Object.keys(extensionSettings).length === 0) {
+    Object.assign(extensionSettings, defaultSettings);
   }
 
   for (const [key, value] of Object.entries(defaultSettings)) {
-    if (extension_settings.sd[key] === undefined) {
-      extension_settings.sd[key] = value;
+    if (extensionSettings[key] === undefined) {
+      extensionSettings[key] = value;
     }
   }
 
-  if (extension_settings.sd.character_prompts === undefined) {
-    extension_settings.sd.character_prompts = {};
+  if (extensionSettings.character_prompts === undefined) {
+    extensionSettings.character_prompts = {};
   }
-  if (extension_settings.sd.character_negative_prompts === undefined) {
-    extension_settings.sd.character_negative_prompts = {};
+  if (extensionSettings.character_negative_prompts === undefined) {
+    extensionSettings.character_negative_prompts = {};
   }
-  if (!Array.isArray(extension_settings.sd.styles)) {
-    extension_settings.sd.styles = defaultStyles;
+  if (!Array.isArray(extensionSettings.styles)) {
+    extensionSettings.styles = defaultStyles;
   }
 
-  $("#sd_scale").val(extension_settings.sd.scale).trigger("input");
-  $("#sd_steps").val(extension_settings.sd.steps).trigger("input");
-  $("#sd_prompt_prefix").val(extension_settings.sd.prompt_prefix).trigger("input");
-  $("#sd_negative_prompt").val(extension_settings.sd.negative_prompt).trigger("input");
-  $("#sd_trigger_prompt").val(extension_settings.sd.trigger_prompt).trigger("input");
-  $("#sd_width").val(extension_settings.sd.width).trigger("input");
-  $("#sd_height").val(extension_settings.sd.height).trigger("input");
-  $("#sd_hr_scale").val(extension_settings.sd.hr_scale).trigger("input");
-  $("#sd_denoising_strength").val(extension_settings.sd.denoising_strength).trigger("input");
-  $("#sd_hr_second_pass_steps").val(extension_settings.sd.hr_second_pass_steps).trigger("input");
-  $("#sd_restore_faces").prop("checked", extension_settings.sd.restore_faces);
-  $("#sd_enable_hr").prop("checked", extension_settings.sd.enable_hr);
-  $("#sd_adetailer_face").prop("checked", extension_settings.sd.adetailer_face);
-  $("#sd_url").val(extension_settings.sd.url);
-  $("#sd_auth").val(extension_settings.sd.auth);
-  $("#sd_clip_skip").val(extension_settings.sd.clip_skip);
-  $("#sd_clip_skip_value").val(extension_settings.sd.clip_skip);
-  $("#sd_seed").val(extension_settings.sd.seed);
+  $("#sd_scale").val(extensionSettings.scale).trigger("input");
+  $("#sd_steps").val(extensionSettings.steps).trigger("input");
+  $("#sd_prompt_prefix").val(extensionSettings.prompt_prefix).trigger("input");
+  $("#sd_negative_prompt").val(extensionSettings.negative_prompt).trigger("input");
+  $("#sd_trigger_prompt").val(extensionSettings.trigger_prompt).trigger("input");
+  $("#sd_width").val(extensionSettings.width).trigger("input");
+  $("#sd_height").val(extensionSettings.height).trigger("input");
+  $("#sd_hr_scale").val(extensionSettings.hr_scale).trigger("input");
+  $("#sd_denoising_strength").val(extensionSettings.denoising_strength).trigger("input");
+  $("#sd_hr_second_pass_steps").val(extensionSettings.hr_second_pass_steps).trigger("input");
+  $("#sd_restore_faces").prop("checked", extensionSettings.restore_faces);
+  $("#sd_enable_hr").prop("checked", extensionSettings.enable_hr);
+  $("#sd_adetailer_face").prop("checked", extensionSettings.adetailer_face);
+  $("#sd_url").val(extensionSettings.url);
+  $("#sd_auth").val(extensionSettings.auth);
+  $("#sd_clip_skip").val(extensionSettings.clip_skip);
+  $("#sd_clip_skip_value").val(extensionSettings.clip_skip);
+  $("#sd_seed").val(extensionSettings.seed);
 
-  for (const style of extension_settings.sd.styles) {
+  for (const style of extensionSettings.styles) {
     const option = document.createElement("option");
     option.value = style.name;
     option.text = style.name;
-    option.selected = style.name === extension_settings.sd.style;
+    option.selected = style.name === extensionSettings.style;
     $("#sd_style").append(option);
   }
   const resolutionId = getClosestKnownResolution();
@@ -276,7 +269,7 @@ async function loadSamplers() {
   $("#sd_sampler").empty();
   let samplers = [];
 
-  if (!extension_settings.sd.url) {
+  if (!extensionSettings.url) {
     return [];
   }
 
@@ -298,13 +291,13 @@ async function loadSamplers() {
     const option = document.createElement("option");
     option.innerText = sampler;
     option.value = sampler;
-    option.selected = sampler === extension_settings.sd.sampler;
+    option.selected = sampler === extensionSettings.sampler;
     $("#sd_sampler").append(option);
   }
 
-  if (!extension_settings.sd.sampler && samplers.length > 0) {
-    extension_settings.sd.sampler = samplers[0];
-    $("#sd_sampler").val(extension_settings.sd.sampler).trigger("change");
+  if (!extensionSettings.sampler && samplers.length > 0) {
+    extensionSettings.sampler = samplers[0];
+    $("#sd_sampler").val(extensionSettings.sampler).trigger("change");
   }
 }
 
@@ -312,14 +305,14 @@ async function loadModels() {
   $("#sd_model").empty();
   let models = [];
 
-  if (!extension_settings.sd.url) {
+  if (!extensionSettings.url) {
     return [];
   }
 
   try {
     const currentModel = await getRemoteModel();
     if (currentModel) {
-      extension_settings.sd.model = currentModel;
+      extensionSettings.model = currentModel;
     }
     const result = await fetch("/api/sd/models", {
       method: "POST",
@@ -339,7 +332,7 @@ async function loadModels() {
         const option = document.createElement("option");
         option.innerText = upscaler;
         option.value = upscaler;
-        option.selected = upscaler === extension_settings.sd.hr_upscaler;
+        option.selected = upscaler === extensionSettings.hr_upscaler;
         $("#sd_hr_upscaler").append(option);
       }
     }
@@ -352,12 +345,12 @@ async function loadModels() {
     const option = document.createElement("option");
     option.innerText = model.text;
     option.value = model.value;
-    option.selected = model.value === extension_settings.sd.model;
+    option.selected = model.value === extensionSettings.model;
     $("#sd_model").append(option);
   }
-  if (!extension_settings.sd.model && models.length > 0) {
-    extension_settings.sd.model = models[0].value;
-    $("#sd_model").val(extension_settings.sd.model).trigger("change");
+  if (!extensionSettings.model && models.length > 0) {
+    extensionSettings.model = models[0].value;
+    $("#sd_model").val(extensionSettings.model).trigger("change");
   }
 }
 
@@ -385,13 +378,13 @@ async function loadSchedulers() {
     const option = document.createElement("option");
     option.innerText = scheduler;
     option.value = scheduler;
-    option.selected = scheduler === extension_settings.sd.scheduler;
+    option.selected = scheduler === extensionSettings.scheduler;
     $("#sd_scheduler").append(option);
   }
 
-  if (!extension_settings.sd.scheduler && schedulers.length > 0 && schedulers[0] !== "N/A") {
-    extension_settings.sd.scheduler = schedulers[0];
-    $("#sd_scheduler").val(extension_settings.sd.scheduler).trigger("change");
+  if (!extensionSettings.scheduler && schedulers.length > 0 && schedulers[0] !== "N/A") {
+    extensionSettings.scheduler = schedulers[0];
+    $("#sd_scheduler").val(extensionSettings.scheduler).trigger("change");
   }
 }
 
@@ -399,7 +392,7 @@ async function loadVaes() {
   $("#sd_vae").empty();
   let vaes = [];
 
-  if (!extension_settings.sd.url) {
+  if (!extensionSettings.url) {
     vaes = ["N/A"];
   } else {
     try {
@@ -424,18 +417,18 @@ async function loadVaes() {
     const option = document.createElement("option");
     option.innerText = vae;
     option.value = vae;
-    option.selected = vae === extension_settings.sd.vae;
+    option.selected = vae === extensionSettings.vae;
     $("#sd_vae").append(option);
   }
 
-  if (!extension_settings.sd.vae && vaes.length > 0 && vaes[0] !== "N/A") {
-    extension_settings.sd.vae = vaes[0];
-    $("#sd_vae").val(extension_settings.sd.vae).trigger("change");
+  if (!extensionSettings.vae && vaes.length > 0 && vaes[0] !== "N/A") {
+    extensionSettings.vae = vaes[0];
+    $("#sd_vae").val(extensionSettings.vae).trigger("change");
   }
 }
 
 function getRequestBody() {
-  return { url: extension_settings.sd.url, auth: extension_settings.sd.auth };
+  return { url: extensionSettings.url, auth: extensionSettings.auth };
 }
 
 function getCharacterAvatarUrl() {
@@ -470,7 +463,7 @@ async function getRemoteUpscalers() {
     return await result.json();
   } catch (error) {
     console.error(error);
-    return [extension_settings.sd.hr_upscaler];
+    return [extensionSettings.hr_upscaler];
   }
 }
 
@@ -498,7 +491,7 @@ async function updateRemoteModel() {
     const result = await fetch("/api/sd/set-model", {
       method: "POST",
       headers: getRequestHeaders(),
-      body: JSON.stringify({ ...getRequestBody(), model: extension_settings.sd.model }),
+      body: JSON.stringify({ ...getRequestBody(), model: extensionSettings.model }),
     });
 
     if (!result.ok) {
@@ -514,8 +507,8 @@ async function updateRemoteModel() {
 
 async function writePromptFields(characterId) {
   const key = getCharaFilename(characterId);
-  const promptPrefix = key ? extension_settings.sd.character_prompts[key] || "" : "";
-  const negativePromptPrefix = key ? extension_settings.sd.character_negative_prompts[key] || "" : "";
+  const promptPrefix = key ? extensionSettings.character_prompts[key] || "" : "";
+  const negativePromptPrefix = key ? extensionSettings.character_negative_prompts[key] || "" : "";
   const promptObject = {
     positive: promptPrefix,
     negative: negativePromptPrefix,
@@ -549,7 +542,7 @@ async function generatePrompt(quietPrompt) {
  * @throws {Error} If the prompt or image generation fails
  */
 async function generatePicture(initiator) {
-  if (!extension_settings.sd.url) {
+  if (!extensionSettings.url) {
     toastr.warning("Image generation is not available. Check your settings and try again.");
     return;
   }
@@ -557,7 +550,7 @@ async function generatePicture(initiator) {
   ensureSelectionExists("sampler", "#sd_sampler");
   ensureSelectionExists("model", "#sd_model");
 
-  const quietPrompt = extension_settings.sd.trigger_prompt;
+  const quietPrompt = extensionSettings.trigger_prompt;
   const context = getContext();
 
   const characterName = context.groupId
@@ -625,13 +618,13 @@ async function sendGenerationRequest(prompt, additionalNegativePrefix, character
   if (this_chid !== undefined && !selected_group) {
     const key = getCharaFilename(this_chid);
     if (key) {
-      characterPrefix = extension_settings.sd.character_prompts[key] || "";
-      characterNegativePrefix = extension_settings.sd.character_negative_prompts[key] || "";
+      characterPrefix = extensionSettings.character_prompts[key] || "";
+      characterNegativePrefix = extensionSettings.character_negative_prompts[key] || "";
     }
   }
 
-  const prefix = combinePrefixes(extension_settings.sd.prompt_prefix, characterPrefix);
-  const negativePrefix = combinePrefixes(extension_settings.sd.negative_prompt, characterNegativePrefix);
+  const prefix = combinePrefixes(extensionSettings.prompt_prefix, characterPrefix);
+  const negativePrefix = combinePrefixes(extensionSettings.negative_prompt, characterNegativePrefix);
   const prefixedPrompt = substituteParams(combinePrefixes(prefix, prompt, "{prompt}"));
   const negativePrompt = substituteParams(combinePrefixes(additionalNegativePrefix, negativePrefix));
 
@@ -671,32 +664,32 @@ async function sendGenerationRequest(prompt, additionalNegativePrefix, character
  * @returns {Promise<{format: string, data: string}>} - A promise that resolves when the image generation and processing are complete.
  */
 async function generateImage(prompt, negativePrompt, signal) {
-  const isValidVae = extension_settings.sd.vae && !["N/A", placeholderVae].includes(extension_settings.sd.vae);
+  const isValidVae = extensionSettings.vae && !["N/A", placeholderVae].includes(extensionSettings.vae);
   let payload = {
     ...getRequestBody(),
     prompt: prompt,
     negative_prompt: negativePrompt,
-    sampler_name: extension_settings.sd.sampler,
-    scheduler: extension_settings.sd.scheduler,
-    steps: extension_settings.sd.steps,
-    cfg_scale: extension_settings.sd.scale,
-    width: extension_settings.sd.width,
-    height: extension_settings.sd.height,
-    restore_faces: !!extension_settings.sd.restore_faces,
-    enable_hr: !!extension_settings.sd.enable_hr,
-    hr_upscaler: extension_settings.sd.hr_upscaler,
-    hr_scale: extension_settings.sd.hr_scale,
+    sampler_name: extensionSettings.sampler,
+    scheduler: extensionSettings.scheduler,
+    steps: extensionSettings.steps,
+    cfg_scale: extensionSettings.scale,
+    width: extensionSettings.width,
+    height: extensionSettings.height,
+    restore_faces: !!extensionSettings.restore_faces,
+    enable_hr: !!extensionSettings.enable_hr,
+    hr_upscaler: extensionSettings.hr_upscaler,
+    hr_scale: extensionSettings.hr_scale,
     hr_additional_modules: [],
-    denoising_strength: extension_settings.sd.denoising_strength,
-    hr_second_pass_steps: extension_settings.sd.hr_second_pass_steps,
-    seed: extension_settings.sd.seed >= 0 ? extension_settings.sd.seed : undefined,
+    denoising_strength: extensionSettings.denoising_strength,
+    hr_second_pass_steps: extensionSettings.hr_second_pass_steps,
+    seed: extensionSettings.seed >= 0 ? extensionSettings.seed : undefined,
     override_settings: {
-      CLIP_stop_at_last_layers: extension_settings.sd.clip_skip,
-      sd_vae: isValidVae ? extension_settings.sd.vae : undefined,
-      forge_additional_modules: isValidVae ? [extension_settings.sd.vae] : undefined, // For SD Forge
+      CLIP_stop_at_last_layers: extensionSettings.clip_skip,
+      sd_vae: isValidVae ? extensionSettings.vae : undefined,
+      forge_additional_modules: isValidVae ? [extensionSettings.vae] : undefined, // For SD Forge
     },
     override_settings_restore_afterwards: true,
-    clip_skip: extension_settings.sd.clip_skip, // For SD.Next
+    clip_skip: extensionSettings.clip_skip, // For SD.Next
     save_images: true,
     send_images: true,
     do_not_save_grid: false,
@@ -704,7 +697,7 @@ async function generateImage(prompt, negativePrompt, signal) {
   };
 
   // Conditionally add the ADetailer if adetailer_face is enabled
-  if (extension_settings.sd.adetailer_face) {
+  if (extensionSettings.adetailer_face) {
     payload = deepMerge(payload, {
       alwayson_scripts: {
         ADetailer: {
@@ -748,7 +741,7 @@ async function generateImage(prompt, negativePrompt, signal) {
 async function sendMessage(prompt, image, generationType, additionalNegativePrefix, initiator, prefixedPrompt) {
   const context = getContext();
   const name = context.groupId ? systemUserName : context.name2;
-  const template = extension_settings.sd.prompts[generationMode.MESSAGE] || "{{prompt}}";
+  const template = extensionSettings.prompts[generationMode.MESSAGE] || "{{prompt}}";
   const messageText = substituteParamsExtended(template, {
     char: name,
     prompt: prompt,
@@ -778,24 +771,24 @@ async function sendMessage(prompt, image, generationType, additionalNegativePref
 }
 
 async function onModelChange() {
-  extension_settings.sd.model = $("#sd_model").find(":selected").val();
+  extensionSettings.model = $("#sd_model").find(":selected").val();
   saveSettingsDebounced();
   toastr.info("Updating remote model...", "Please wait");
   await updateRemoteModel();
   toastr.success("Model successfully loaded!", "Image Generation");
 }
 async function onVaeChange() {
-  extension_settings.sd.vae = $("#sd_vae").find(":selected").val();
+  extensionSettings.vae = $("#sd_vae").find(":selected").val();
   saveSettingsDebounced();
 }
 
 function onSamplerChange() {
-  extension_settings.sd.sampler = $("#sd_sampler").find(":selected").val();
+  extensionSettings.sampler = $("#sd_sampler").find(":selected").val();
   saveSettingsDebounced();
 }
 
 function onSchedulerChange() {
-  extension_settings.sd.scheduler = $("#sd_scheduler").find(":selected").val();
+  extensionSettings.scheduler = $("#sd_scheduler").find(":selected").val();
   saveSettingsDebounced();
 }
 
@@ -813,104 +806,104 @@ function onResolutionChange() {
 }
 
 function onHrUpscalerChange() {
-  extension_settings.sd.hr_upscaler = $("#sd_hr_upscaler").find(":selected").val();
+  extensionSettings.hr_upscaler = $("#sd_hr_upscaler").find(":selected").val();
   saveSettingsDebounced();
 }
 
 function onScaleInput() {
-  extension_settings.sd.scale = Number($("#sd_scale").val());
-  $("#sd_scale_value").val(extension_settings.sd.scale.toFixed(1));
+  extensionSettings.scale = Number($("#sd_scale").val());
+  $("#sd_scale_value").val(extensionSettings.scale.toFixed(1));
   saveSettingsDebounced();
 }
 
 function onStepsInput() {
-  extension_settings.sd.steps = Number($("#sd_steps").val());
-  $("#sd_steps_value").val(extension_settings.sd.steps);
+  extensionSettings.steps = Number($("#sd_steps").val());
+  $("#sd_steps_value").val(extensionSettings.steps);
   saveSettingsDebounced();
 }
 
 function onWidthInput() {
-  extension_settings.sd.width = Number($("#sd_width").val());
-  $("#sd_width_value").val(extension_settings.sd.width);
+  extensionSettings.width = Number($("#sd_width").val());
+  $("#sd_width_value").val(extensionSettings.width);
   saveSettingsDebounced();
 }
 
 function onHeightInput() {
-  extension_settings.sd.height = Number($("#sd_height").val());
-  $("#sd_height_value").val(extension_settings.sd.height);
+  extensionSettings.height = Number($("#sd_height").val());
+  $("#sd_height_value").val(extensionSettings.height);
   saveSettingsDebounced();
 }
 
 function onSwapDimensionsClick() {
-  const w = extension_settings.sd.height;
-  const h = extension_settings.sd.width;
-  extension_settings.sd.width = w;
-  extension_settings.sd.height = h;
+  const w = extensionSettings.height;
+  const h = extensionSettings.width;
+  extensionSettings.width = w;
+  extensionSettings.height = h;
   $("#sd_width").val(w).trigger("input");
   $("#sd_height").val(h).trigger("input");
   saveSettingsDebounced();
 }
 
 function onHrScaleInput() {
-  extension_settings.sd.hr_scale = Number($("#sd_hr_scale").val());
-  $("#sd_hr_scale_value").val(extension_settings.sd.hr_scale.toFixed(1));
+  extensionSettings.hr_scale = Number($("#sd_hr_scale").val());
+  $("#sd_hr_scale_value").val(extensionSettings.hr_scale.toFixed(1));
   saveSettingsDebounced();
 }
 
 function onDenoisingStrengthInput() {
-  extension_settings.sd.denoising_strength = Number($("#sd_denoising_strength").val());
-  $("#sd_denoising_strength_value").val(extension_settings.sd.denoising_strength.toFixed(2));
+  extensionSettings.denoising_strength = Number($("#sd_denoising_strength").val());
+  $("#sd_denoising_strength_value").val(extensionSettings.denoising_strength.toFixed(2));
   saveSettingsDebounced();
 }
 
 function onHrSecondPassStepsInput() {
-  extension_settings.sd.hr_second_pass_steps = Number($("#sd_hr_second_pass_steps").val());
-  $("#sd_hr_second_pass_steps_value").val(extension_settings.sd.hr_second_pass_steps);
+  extensionSettings.hr_second_pass_steps = Number($("#sd_hr_second_pass_steps").val());
+  $("#sd_hr_second_pass_steps_value").val(extensionSettings.hr_second_pass_steps);
   saveSettingsDebounced();
 }
 
 function onClipSkipInput() {
-  extension_settings.sd.clip_skip = Number($("#sd_clip_skip").val());
-  $("#sd_clip_skip_value").val(extension_settings.sd.clip_skip);
+  extensionSettings.clip_skip = Number($("#sd_clip_skip").val());
+  $("#sd_clip_skip_value").val(extensionSettings.clip_skip);
   saveSettingsDebounced();
 }
 
 function onSeedInput() {
-  extension_settings.sd.seed = Number($("#sd_seed").val());
+  extensionSettings.seed = Number($("#sd_seed").val());
   saveSettingsDebounced();
 }
 
 function onRestoreFacesInput() {
-  extension_settings.sd.restore_faces = !!$(this).prop("checked");
+  extensionSettings.restore_faces = !!$(this).prop("checked");
   saveSettingsDebounced();
 }
 
 function onHighResFixInput() {
-  extension_settings.sd.enable_hr = !!$(this).prop("checked");
+  extensionSettings.enable_hr = !!$(this).prop("checked");
   saveSettingsDebounced();
 }
 
 function onADetailerFaceChange() {
-  extension_settings.sd.adetailer_face = !!$("#sd_adetailer_face").prop("checked");
+  extensionSettings.adetailer_face = !!$("#sd_adetailer_face").prop("checked");
   saveSettingsDebounced();
 }
 
 async function onPromptPrefixInput() {
-  extension_settings.sd.prompt_prefix = $("#sd_prompt_prefix").val();
+  extensionSettings.prompt_prefix = $("#sd_prompt_prefix").val();
   saveSettingsDebounced();
   if (CSS.supports("field-sizing", "content")) return;
   await resetScrollHeight($(this));
 }
 
 async function onNegativePromptInput() {
-  extension_settings.sd.negative_prompt = $("#sd_negative_prompt").val();
+  extensionSettings.negative_prompt = $("#sd_negative_prompt").val();
   saveSettingsDebounced();
   if (CSS.supports("field-sizing", "content")) return;
   await resetScrollHeight($(this));
 }
 
 async function onTriggerPromptInput() {
-  extension_settings.sd.trigger_prompt = $("#sd_trigger_prompt").val();
+  extensionSettings.trigger_prompt = $("#sd_trigger_prompt").val();
   saveSettingsDebounced();
   if (CSS.supports("field-sizing", "content")) return;
   await resetScrollHeight($(this));
@@ -918,7 +911,7 @@ async function onTriggerPromptInput() {
 
 async function onCharacterPromptInput() {
   const key = getCharaFilename(this_chid);
-  extension_settings.sd.character_prompts[key] = $("#sd_character_prompt").val();
+  extensionSettings.character_prompts[key] = $("#sd_character_prompt").val();
   saveSettingsDebounced();
   writePromptFieldsDebounced(this_chid);
   if (CSS.supports("field-sizing", "content")) return;
@@ -927,7 +920,7 @@ async function onCharacterPromptInput() {
 
 async function onCharacterNegativePromptInput() {
   const key = getCharaFilename(this_chid);
-  extension_settings.sd.character_negative_prompts[key] = $("#sd_character_negative_prompt").val();
+  extensionSettings.character_negative_prompts[key] = $("#sd_character_negative_prompt").val();
   saveSettingsDebounced();
   writePromptFieldsDebounced(this_chid);
   if (CSS.supports("field-sizing", "content")) return;
@@ -950,7 +943,7 @@ async function onCharacterPromptShareInput() {
 
 function onStyleSelect() {
   const selectedStyle = String($("#sd_style").find(":selected").val());
-  const styleObject = extension_settings.sd.styles.find((x) => x.name === selectedStyle);
+  const styleObject = extensionSettings.styles.find((x) => x.name === selectedStyle);
 
   if (!styleObject) {
     console.warn(`Could not find style object for ${selectedStyle}`);
@@ -959,7 +952,7 @@ function onStyleSelect() {
 
   $("#sd_prompt_prefix").val(styleObject.prefix).trigger("input");
   $("#sd_negative_prompt").val(styleObject.negative).trigger("input");
-  extension_settings.sd.style = selectedStyle;
+  extensionSettings.style = selectedStyle;
   saveSettingsDebounced();
 }
 
@@ -974,7 +967,7 @@ async function onSaveStyleClick() {
   const prefix = String($("#sd_prompt_prefix").val());
   const negative = String($("#sd_negative_prompt").val());
 
-  const existingStyle = extension_settings.sd.styles.find((x) => x.name === name);
+  const existingStyle = extensionSettings.styles.find((x) => x.name === name);
   if (existingStyle) {
     existingStyle.prefix = prefix;
     existingStyle.negative = negative;
@@ -989,7 +982,7 @@ async function onSaveStyleClick() {
     negative: negative,
   };
 
-  extension_settings.sd.styles.push(styleObject);
+  extensionSettings.styles.push(styleObject);
   const option = document.createElement("option");
   option.value = styleObject.name;
   option.text = styleObject.name;
@@ -1001,7 +994,7 @@ async function onSaveStyleClick() {
 
 async function onDeleteStyleClick() {
   const selectedStyle = String($("#sd_style").find(":selected").val());
-  const styleObject = extension_settings.sd.styles.find((x) => x.name === selectedStyle);
+  const styleObject = extensionSettings.styles.find((x) => x.name === selectedStyle);
   if (!styleObject) {
     return;
   }
@@ -1016,19 +1009,19 @@ async function onDeleteStyleClick() {
     return;
   }
 
-  const index = extension_settings.sd.styles.indexOf(styleObject);
+  const index = extensionSettings.styles.indexOf(styleObject);
   if (index === -1) {
     return;
   }
 
-  extension_settings.sd.styles.splice(index, 1);
+  extensionSettings.styles.splice(index, 1);
   $("#sd_style").find(`option[value="${selectedStyle}"]`).remove();
 
-  if (extension_settings.sd.styles.length > 0) {
-    extension_settings.sd.style = extension_settings.sd.styles[0].name;
-    $("#sd_style").val(extension_settings.sd.style).trigger("change");
+  if (extensionSettings.styles.length > 0) {
+    extensionSettings.style = extensionSettings.styles[0].name;
+    $("#sd_style").val(extensionSettings.style).trigger("change");
   } else {
-    extension_settings.sd.style = "";
+    extensionSettings.style = "";
     $("#sd_prompt_prefix").val("").trigger("input");
     $("#sd_negative_prompt").val("").trigger("input");
     $("#sd_style").val("");
@@ -1038,12 +1031,12 @@ async function onDeleteStyleClick() {
 }
 
 function onUrlInput() {
-  extension_settings.sd.url = $("#sd_url").val();
+  extensionSettings.url = $("#sd_url").val();
   saveSettingsDebounced();
 }
 
 function onAuthInput() {
-  extension_settings.sd.auth = $("#sd_auth").val();
+  extensionSettings.auth = $("#sd_auth").val();
   saveSettingsDebounced();
 }
 
@@ -1101,9 +1094,8 @@ async function onImageSwiped({ message, element, direction }) {
       const swipeControls = element.find(".mes_img_swipes");
       const stopButton = document.getElementById("sd_stop");
       const stopListener = () => abortController.abort("Aborted by user");
-      const originalSeed = extension_settings.sd.seed;
-      extension_settings.sd.seed =
-        extension_settings.sd.seed >= 0 ? Math.round(Math.random() * (Math.pow(2, 32) - 1)) : -1;
+      const originalSeed = extensionSettings.seed;
+      extensionSettings.seed = extensionSettings.seed >= 0 ? Math.round(Math.random() * (Math.pow(2, 32) - 1)) : -1;
       let imagePath = "";
 
       try {
@@ -1133,7 +1125,7 @@ async function onImageSwiped({ message, element, direction }) {
         messageImg.removeClass(animationClass);
         swipeControls.show();
         eventSource.removeListener(CUSTOM_STOP_EVENT, stopListener);
-        extension_settings.sd.seed = originalSeed;
+        extensionSettings.seed = originalSeed;
       }
 
       if (!imagePath) {
@@ -1158,8 +1150,8 @@ async function onChatChanged() {
   $("#sd_character_prompt_block").show();
 
   const key = getCharaFilename(this_chid);
-  let characterPrompt = key ? extension_settings.sd.character_prompts[key] || "" : "";
-  let negativePrompt = key ? extension_settings.sd.character_negative_prompts[key] || "" : "";
+  let characterPrompt = key ? extensionSettings.character_prompts[key] || "" : "";
+  let negativePrompt = key ? extensionSettings.character_negative_prompts[key] || "" : "";
 
   const context = getContext();
   const sharedPromptData = context?.characters[this_chid]?.data?.extensions?.sd_character_prompt;
@@ -1167,11 +1159,11 @@ async function onChatChanged() {
 
   if (typeof sharedPromptData?.positive === "string" && !characterPrompt && sharedPromptData.positive) {
     characterPrompt = sharedPromptData.positive;
-    extension_settings.sd.character_prompts[key] = characterPrompt;
+    extensionSettings.character_prompts[key] = characterPrompt;
   }
   if (typeof sharedPromptData?.negative === "string" && !negativePrompt && sharedPromptData.negative) {
     negativePrompt = sharedPromptData.negative;
-    extension_settings.sd.character_negative_prompts[key] = negativePrompt;
+    extensionSettings.character_negative_prompts[key] = negativePrompt;
   }
 
   $("#sd_character_prompt").val(characterPrompt);
