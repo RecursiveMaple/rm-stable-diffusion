@@ -234,6 +234,7 @@ async function adjustElementScrollHeight() {
 }
 
 async function loadSettings() {
+  extensionSettings = extensionSettings || {};
   if (Object.keys(extensionSettings).length === 0) {
     Object.assign(extensionSettings, defaultSettings);
   }
@@ -256,29 +257,30 @@ async function loadSettings() {
 
   $("#sd_scale").val(extensionSettings.scale).trigger("input");
   $("#sd_steps").val(extensionSettings.steps).trigger("input");
-  $("#sd_prompt_prefix").val(extensionSettings.prompt_prefix).trigger("input");
-  $("#sd_negative_prompt").val(extensionSettings.negative_prompt).trigger("input");
-  $("#sd_trigger_prompt").val(extensionSettings.trigger_prompt).trigger("input");
   $("#sd_width").val(extensionSettings.width).trigger("input");
   $("#sd_height").val(extensionSettings.height).trigger("input");
   $("#sd_hr_scale").val(extensionSettings.hr_scale).trigger("input");
   $("#sd_denoising_strength").val(extensionSettings.denoising_strength).trigger("input");
   $("#sd_hr_second_pass_steps").val(extensionSettings.hr_second_pass_steps).trigger("input");
+  $("#sd_clip_skip").val(extensionSettings.clip_skip).trigger("input");
+  $("#sd_prompt_prefix").val(extensionSettings.prompt_prefix).trigger("input");
+  $("#sd_negative_prompt").val(extensionSettings.negative_prompt).trigger("input");
+  $("#sd_trigger_prompt").val(extensionSettings.trigger_prompt).trigger("input");
   $("#sd_restore_faces").prop("checked", extensionSettings.restore_faces);
   $("#sd_enable_hr").prop("checked", extensionSettings.enable_hr);
   $("#sd_adetailer_face").prop("checked", extensionSettings.adetailer_face);
   $("#sd_url").val(extensionSettings.url);
   $("#sd_auth").val(extensionSettings.auth);
-  $("#sd_clip_skip").val(extensionSettings.clip_skip);
-  $("#sd_clip_skip_value").val(extensionSettings.clip_skip);
   $("#sd_seed").val(extensionSettings.seed);
   $("#sd_ref").prop("checked", extensionSettings.ref);
-  $("#sd_ref_weight").val(extensionSettings.ref_weight);
+  $("#sd_ref_weight").val(extensionSettings.ref_weight).trigger("input");
   $("#sd_ref_weight_value").val(extensionSettings.ref_weight);
-  $("#sd_ref_start").val(extensionSettings.ref_start);
+  $("#sd_ref_start").val(extensionSettings.ref_start).trigger("input");
   $("#sd_ref_start_value").val(extensionSettings.ref_start);
-  $("#sd_ref_end").val(extensionSettings.ref_end);
+  $("#sd_ref_end").val(extensionSettings.ref_end).trigger("input");
   $("#sd_ref_end_value").val(extensionSettings.ref_end);
+  $("#sd_ref_fidelity").val(extensionSettings.ref_fidelity).trigger("input");
+  $("#sd_ref_fidelity_value").val(extensionSettings.ref_fidelity);
 
   for (const style of extensionSettings.styles) {
     const option = document.createElement("option");
@@ -287,8 +289,10 @@ async function loadSettings() {
     option.selected = style.name === extensionSettings.style;
     $("#sd_style").append(option);
   }
+
   const resolutionId = getClosestKnownResolution();
-  $("#sd_resolution").val(resolutionId);
+  $("#sd_resolution").val(resolutionId).trigger("input");
+
   await loadSettingOptions();
 }
 
