@@ -378,7 +378,9 @@
           title="Use the character's avatar image as a reference in ControlNet during image generation"
         >
           <input id="sd_ref" type="checkbox" />
-          <small data-i18n="Use Character Avatar in Reference Controlnet">Use Character Avatar in Reference Controlnet</small>
+          <small data-i18n="Use Character Avatar in Reference Controlnet"
+            >Use Character Avatar in Reference Controlnet</small
+          >
         </label>
       </div>
       <div class="flex-container">
@@ -455,6 +457,31 @@
             max="{{ref_end_max}}"
             step="{{ref_end_step}}"
             value="{{ref_end}}"
+          />
+        </div>
+        <div class="alignitemscenter flex-container flexFlowColumn flexGrow flexShrink gap0 flexBasis48p">
+          <small>
+            <span data-i18n="Reference Fidelity">Reference Fidelity</span>
+          </small>
+          <input
+            class="neo-range-slider"
+            type="range"
+            id="sd_ref_fidelity"
+            name="sd_ref_fidelity"
+            min="{{ref_fidelity_min}}"
+            max="{{ref_fidelity_max}}"
+            step="{{ref_fidelity_step}}"
+            value="{{ref_fidelity}}"
+          />
+          <input
+            class="neo-range-input"
+            type="number"
+            id="sd_ref_fidelity_value"
+            data-for="sd_ref_fidelity"
+            min="{{ref_fidelity_min}}"
+            max="{{ref_fidelity_max}}"
+            step="{{ref_fidelity_step}}"
+            value="{{ref_fidelity}}"
           />
         </div>
       </div>

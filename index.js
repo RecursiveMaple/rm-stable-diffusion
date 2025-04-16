@@ -115,18 +115,22 @@ const defaultSettings = {
 
   // Reference ControlNet settings
   ref: false,
-  ref_weight: 0.7,
+  ref_weight: 1.0,
   ref_weight_min: 0.0,
-  ref_weight_max: 1.0,
-  ref_weight_step: 0.1,
+  ref_weight_max: 2.0,
+  ref_weight_step: 0.05,
   ref_start: 0.0,
   ref_start_min: 0.0,
   ref_start_max: 1.0,
   ref_start_step: 0.1,
-  ref_end: 0.7,
+  ref_end: 1.0,
   ref_end_min: 0.0,
   ref_end_max: 1.0,
   ref_end_step: 0.1,
+  ref_fidelity: 0.5,
+  ref_fidelity_min: 0.0,
+  ref_fidelity_max: 1.0,
+  ref_fidelity_step: 0.1,
 
   style: "Default",
   styles: defaultStyles,
@@ -754,6 +758,7 @@ async function generateImage(prompt, negativePrompt, signal) {
                 image: JSON.stringify(avatarBase64),
                 module: "reference_only",
                 weight: extensionSettings.ref_weight,
+                threshold_a: extensionSettings.ref_fidelity,
                 guidance_start: extensionSettings.ref_start,
                 guidance_end: extensionSettings.ref_end,
               },
@@ -1246,6 +1251,12 @@ function onRefEndInput() {
   saveSettingsDebounced();
 }
 
+function onRefFidelityInput() {
+  extensionSettings.ref_fidelity = Number($("#sd_ref_fidelity").val());
+  $("#sd_ref_fidelity_value").val(extensionSettings.ref_fidelity.toFixed(1));
+  saveSettingsDebounced();
+}
+
 jQuery(async () => {
   await addSDGenButtons();
 
@@ -1286,6 +1297,7 @@ jQuery(async () => {
   $("#sd_ref_weight").on("input", onRefWeightInput);
   $("#sd_ref_start").on("input", onRefStartInput);
   $("#sd_ref_end").on("input", onRefEndInput);
+  $("#sd_ref_fidelity").on("input", onRefFidelityInput);
 
   if (!CSS.supports("field-sizing", "content")) {
     $(".sd_settings .inline-drawer-toggle").on("click", function () {
