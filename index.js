@@ -538,7 +538,7 @@ async function writePromptFields(characterId) {
  * @returns {Promise<string>} - A promise that resolves when the prompt generation completes.
  */
 async function generatePrompt(quietPrompt) {
-  const reply = await generateQuietPrompt(quietPrompt, false, false, null, "user");
+  const reply = await generateQuietPrompt(quietPrompt, false, false, null, "User");
   const processedReply = processReply(reply);
 
   if (!processedReply) {
