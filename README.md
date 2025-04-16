@@ -10,7 +10,7 @@
 
 ### Installation
 
-*In most cases, this should just be using ST's inbuilt extension installer.* 
+*In most cases, this should just be using ST's inbuilt extension installer.*
 
 ### Usage
 

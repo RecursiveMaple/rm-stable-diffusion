@@ -1,0 +1,9 @@
+{
+    "Trigger prompt": "发送提示词",
+    "[title]sd_ref": "使用角色头像作参考",
+    "Use Character Avatar in Reference Controlnet": "使用角色头像作为Reference ControlNet的参考",
+    "Reference Weight": "权重",
+    "Reference Start Step": "起始步骤",
+    "Reference End Step": "结束步骤",
+    "Reference Fidelity": "还原度"
+}
