@@ -1331,4 +1331,5 @@ jQuery(async () => {
   eventSource.on(event_types.CHAT_CHANGED, onChatChanged);
 
   await loadSettings();
+  $('body').addClass('sd');
 });
